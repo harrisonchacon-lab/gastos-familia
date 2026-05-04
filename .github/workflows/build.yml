@@ -37,7 +37,8 @@ jobs:
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 21/' buildozer.spec
           sed -i 's/#android.build_tools_version = .*/android.build_tools_version = 33.0.2/' buildozer.spec
-          echo "android.sdk_path = $ANDROID_SDK_ROOT" >> buildozer.spec
+          mkdir -p ~/.buildozer/android/platform/
+          ln -sfn $ANDROID_SDK_ROOT ~/.buildozer/android/platform/android-sdk
 
       - name: Build APK
         run: buildozer android debug
