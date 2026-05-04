@@ -13,7 +13,7 @@ jobs:
 
       - name: Create buildozer.spec
         run: |
-          buildozer init
+          yes | buildozer init
           sed -i 's/title = My Application/title = Gastos Familia/' buildozer.spec
           sed -i 's/package.name = myapp/package.name = gastosfamilia/' buildozer.spec
           sed -i 's/package.domain = org.test/package.domain = org.harrison/' buildozer.spec
@@ -22,7 +22,7 @@ jobs:
           sed -i 's/#android.minapi = 21/android.minapi = 21/' buildozer.spec
 
       - name: Build APK
-        run: buildozer android debug
+        run: yes | buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
