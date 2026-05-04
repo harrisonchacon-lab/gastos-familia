@@ -11,11 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Fix dependencies
+      - name: Fix Cython and dependencies
         run: |
           apt-get update -qq
           apt-get install -y libffi-dev autoconf automake libtool
+          pip uninstall -y cython
           pip install "cython==3.0.11"
+          pip install "jnius==1.6.1" || true
 
       - name: Create buildozer.spec
         run: |
@@ -26,7 +28,6 @@ jobs:
           sed -i 's/requirements = python3,kivy/requirements = python3,kivy==2.3.0/' buildozer.spec
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 21/' buildozer.spec
-          sed -i 's/#log_level = 2/log_level = 2/' buildozer.spec
           sed -i 's/p4a.branch = master/p4a.branch = develop/' buildozer.spec
 
       - name: Build APK
