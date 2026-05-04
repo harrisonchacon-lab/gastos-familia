@@ -14,7 +14,7 @@ jobs:
       - name: Fix Cython and dependencies
         run: |
           apt-get update -qq
-          apt-get install -y libffi-dev autoconf automake libtool
+          apt-get install -y libffi-dev autoconf automake libtool aapt
           pip uninstall -y cython
           pip install "cython==3.0.11"
 
@@ -28,13 +28,14 @@ jobs:
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 21/' buildozer.spec
           sed -i 's/p4a.branch = master/p4a.branch = develop/' buildozer.spec
+          sed -i 's/#android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
 
       - name: Build APK
         run: |
           yes | buildozer android debug 2>&1 | tee full.log || true
-          grep -i "error\|exception\|traceback\|failed" full.log | grep -v "^#" | tail -50 > errors.log
-          cat errors.log
-          ls -la bin/ || echo "No bin folder"
+          echo "=== ULTIMAS 100 LINEAS ===" >> errors.log
+          tail -100 full.log >> errors.log
+          ls -la bin/ || echo "No bin folder" >> errors.log
 
       - name: Upload logs and APK
         uses: actions/upload-artifact@v4
