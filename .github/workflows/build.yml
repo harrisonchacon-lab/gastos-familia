@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
 
@@ -17,15 +17,17 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-17-jdk \
             autoconf automake libtool pkg-config libffi-dev cmake \
-            zlib1g-dev libssl-dev
+            zlib1g-dev libssl-dev adb
           pip install buildozer cython setuptools
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android build tools
+      - name: Install Android tools
         run: |
-          sdkmanager "build-tools;33.0.2" "platforms;android-33"
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
 
       - name: Create buildozer.spec
         run: |
@@ -37,10 +39,13 @@ jobs:
           sed -i 's/#android.api = 31/android.api = 33/' buildozer.spec
           sed -i 's/#android.minapi = 21/android.minapi = 21/' buildozer.spec
           sed -i 's/#android.build_tools_version = .*/android.build_tools_version = 33.0.2/' buildozer.spec
+          sed -i 's/#android.skip_update = False/android.skip_update = True/' buildozer.spec
           mkdir -p ~/.buildozer/android/platform/
           ln -sfn $ANDROID_SDK_ROOT ~/.buildozer/android/platform/android-sdk
 
       - name: Build APK
+        env:
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
         run: buildozer android debug
 
       - name: Upload APK
