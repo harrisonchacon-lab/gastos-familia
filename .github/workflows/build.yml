@@ -17,7 +17,6 @@ jobs:
           apt-get install -y libffi-dev autoconf automake libtool
           pip uninstall -y cython
           pip install "cython==3.0.11"
-          pip install "jnius==1.6.1" || true
 
       - name: Create buildozer.spec
         run: |
@@ -32,11 +31,16 @@ jobs:
 
       - name: Build APK
         run: |
-          yes | buildozer android debug
+          yes | buildozer android debug 2>&1 | tee full.log || true
+          grep -i "error\|exception\|traceback\|failed" full.log | grep -v "^#" | tail -50 > errors.log
+          cat errors.log
           ls -la bin/ || echo "No bin folder"
 
-      - name: Upload APK
+      - name: Upload logs and APK
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: gastos-familia-apk
-          path: bin/*.apk
+          name: build-output
+          path: |
+            bin/*.apk
+            errors.log
