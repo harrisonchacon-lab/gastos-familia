@@ -15,10 +15,27 @@ from kivy.uix.spinner import Spinner
 from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle, RoundedRectangle
 from kivy.utils import platform
+from kivy.metrics import sp, dp
 
 # Solo cambia tamaño en escritorio
 if platform != 'android':
     Window.size = (360, 640)
+else:
+    Window.softinput_mode = 'below_target'
+
+# Tamaños de fuente adaptables
+S = sp(14)   # pequeño
+M = sp(16)   # mediano
+L = sp(20)   # grande
+XL = sp(26)  # título
+
+# Alturas adaptables
+H_BTN  = dp(56)
+H_INP  = dp(52)
+H_FILA = dp(64)
+H_SPIN = dp(52)
+H_CARD = dp(84)
+PAD    = dp(20)
 
 ARCHIVO = "gastos_familia.csv"
 CATEGORIAS_INGRESO = ["Sueldo","Negocio","Freelance","Arriendo","Regalo","Otro"]
@@ -129,7 +146,7 @@ COLOR_AZUL     = (0.25, 0.55, 0.95, 1)
 COLOR_AMARILLO = (0.95, 0.80, 0.25, 1)
 COLOR_BORRAR   = (0.55, 0.12, 0.12, 1)
 COLOR_EDITAR   = (0.20, 0.40, 0.70, 1)
-RADIO          = [14]
+RADIO          = [dp(14)]
 
 COLORES_CATEGORIA = {
     "Comida":(0.95,0.65,0.20,1),"Servicios":(0.40,0.70,0.95,1),
@@ -157,22 +174,24 @@ def tarjeta_redondeada(widget, color=None, radio=None):
     widget.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
     widget.bind(size=lambda i,v: setattr(i._rect,"size",v))
 
-def hacer_label(texto, tamanio=15, color=None, bold=False, halign="left"):
+def hacer_label(texto, tamanio=None, color=None, bold=False, halign="left"):
     color = color or COLOR_TEXTO
+    tamanio = tamanio or M
     lbl = Label(text=texto, font_size=tamanio, color=color,
                 bold=bold, halign=halign, valign="middle", size_hint_y=None)
-    lbl.bind(texture_size=lambda i,v: setattr(i,"height",v[1]+8))
+    lbl.bind(texture_size=lambda i,v: setattr(i,"height",v[1]+dp(10)))
     lbl.bind(width=lambda i,v: setattr(i,"text_size",(v,None)))
     return lbl
 
-def hacer_boton(texto, color_bg=None, on_press=None, altura=50, radio=14):
-    btn = Button(text=texto, font_size=14, bold=True,
+def hacer_boton(texto, color_bg=None, on_press=None, altura=None, radio=14):
+    altura = altura or H_BTN
+    btn = Button(text=texto, font_size=M, bold=True,
                  background_normal="", background_color=(0,0,0,0),
                  color=COLOR_TEXTO, size_hint_y=None, height=altura)
     color_bg = color_bg or COLOR_BOTON
     with btn.canvas.before:
         Color(*color_bg)
-        btn._rect = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[radio])
+        btn._rect = RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(radio)])
     btn.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
     btn.bind(size=lambda i,v: setattr(i._rect,"size",v))
     if on_press:
@@ -180,62 +199,62 @@ def hacer_boton(texto, color_bg=None, on_press=None, altura=50, radio=14):
     return btn
 
 def hacer_input(hint):
-    contenedor = BoxLayout(size_hint_y=None, height=46, padding=[2,2])
-    tarjeta_redondeada(contenedor, color=COLOR_BOTON, radio=[10])
-    inp = TextInput(hint_text=hint, font_size=15,
+    contenedor = BoxLayout(size_hint_y=None, height=H_INP, padding=[dp(2),dp(2)])
+    tarjeta_redondeada(contenedor, color=COLOR_BOTON, radio=[dp(10)])
+    inp = TextInput(hint_text=hint, font_size=M,
                     background_normal="", background_color=(0,0,0,0),
                     foreground_color=COLOR_TEXTO,
                     hint_text_color=COLOR_GRIS,
                     cursor_color=COLOR_VERDE,
-                    multiline=False, padding=[12,10])
+                    multiline=False, padding=[dp(14),dp(12)])
     contenedor.add_widget(inp)
     contenedor.input = inp
     return contenedor
 
 def hacer_spinner(valores, seleccion=""):
-    sp = Spinner(text=seleccion or valores[0], values=valores,
-                 font_size=13, background_normal="",
-                 background_color=(0,0,0,0),
-                 color=COLOR_TEXTO, size_hint_y=None, height=44)
-    with sp.canvas.before:
+    sp_w = Spinner(text=seleccion or valores[0], values=valores,
+                   font_size=M, background_normal="",
+                   background_color=(0,0,0,0),
+                   color=COLOR_TEXTO, size_hint_y=None, height=H_SPIN)
+    with sp_w.canvas.before:
         Color(*COLOR_BOTON)
-        sp._rect = RoundedRectangle(pos=sp.pos, size=sp.size, radius=[10])
-    sp.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
-    sp.bind(size=lambda i,v: setattr(i._rect,"size",v))
-    return sp
+        sp_w._rect = RoundedRectangle(pos=sp_w.pos, size=sp_w.size, radius=[dp(10)])
+    sp_w.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
+    sp_w.bind(size=lambda i,v: setattr(i._rect,"size",v))
+    return sp_w
 
 def tarjeta_box(titulo, valor, color):
-    caja = BoxLayout(orientation="vertical", padding=6)
-    tarjeta_redondeada(caja, radio=[10])
-    caja.add_widget(Label(text=titulo, font_size=10, color=COLOR_GRIS, size_hint_y=0.4))
-    caja.add_widget(Label(text=valor,  font_size=14, bold=True, color=color, size_hint_y=0.6))
+    caja = BoxLayout(orientation="vertical", padding=dp(8))
+    tarjeta_redondeada(caja, radio=[dp(10)])
+    caja.add_widget(Label(text=titulo, font_size=S, color=COLOR_GRIS, size_hint_y=0.4))
+    caja.add_widget(Label(text=valor,  font_size=M, bold=True, color=color, size_hint_y=0.6))
     return caja
 
 def mostrar_popup(titulo, mensaje, color=None):
     color = color or COLOR_TEXTO
-    contenido = BoxLayout(orientation="vertical", padding=16, spacing=10)
+    contenido = BoxLayout(orientation="vertical", padding=dp(16), spacing=dp(10))
     tarjeta_redondeada(contenido)
-    contenido.add_widget(hacer_label(mensaje, tamanio=14, color=color, halign="center"))
+    contenido.add_widget(hacer_label(mensaje, tamanio=M, color=color, halign="center"))
     btn = hacer_boton("Cerrar", color_bg=COLOR_BOTON)
     contenido.add_widget(btn)
-    popup = Popup(title=titulo, content=contenido, size_hint=(0.85,0.38),
-                  background_color=COLOR_TARJETA, title_color=COLOR_TEXTO, title_size=15)
+    popup = Popup(title=titulo, content=contenido, size_hint=(0.88,0.42),
+                  background_color=COLOR_TARJETA, title_color=COLOR_TEXTO, title_size=M)
     btn.bind(on_press=popup.dismiss)
     popup.open()
 
 def confirmar_borrado(desc, monto, on_confirm):
-    contenido = BoxLayout(orientation="vertical", padding=16, spacing=12)
+    contenido = BoxLayout(orientation="vertical", padding=dp(16), spacing=dp(12))
     tarjeta_redondeada(contenido)
     contenido.add_widget(hacer_label(
         f"Seguro que quieres borrar?\n\n{desc}\n${monto:,.0f}",
-        tamanio=14, color=COLOR_TEXTO, halign="center"))
-    bots = BoxLayout(orientation="horizontal", size_hint_y=None, height=48, spacing=10)
-    btn_si = hacer_boton("Si, borrar", color_bg=COLOR_BORRAR, altura=48)
-    btn_no = hacer_boton("Cancelar",   color_bg=COLOR_BOTON,  altura=48)
+        tamanio=M, color=COLOR_TEXTO, halign="center"))
+    bots = BoxLayout(orientation="horizontal", size_hint_y=None, height=H_BTN, spacing=dp(10))
+    btn_si = hacer_boton("Si, borrar", color_bg=COLOR_BORRAR, altura=H_BTN)
+    btn_no = hacer_boton("Cancelar",   color_bg=COLOR_BOTON,  altura=H_BTN)
     bots.add_widget(btn_si); bots.add_widget(btn_no)
     contenido.add_widget(bots)
-    popup = Popup(title="Borrar movimiento", content=contenido, size_hint=(0.85,0.44),
-                  background_color=COLOR_TARJETA, title_color=COLOR_ROJO, title_size=15)
+    popup = Popup(title="Borrar movimiento", content=contenido, size_hint=(0.88,0.48),
+                  background_color=COLOR_TARJETA, title_color=COLOR_ROJO, title_size=M)
     btn_si.bind(on_press=lambda x: [popup.dismiss(), on_confirm()])
     btn_no.bind(on_press=popup.dismiss)
     popup.open()
@@ -243,28 +262,28 @@ def confirmar_borrado(desc, monto, on_confirm):
 def popup_editar(row, on_guardar):
     idx, tipo, desc, cat, monto, fecha = row
     categorias = CATEGORIAS_INGRESO if tipo=="INGRESO" else CATEGORIAS_GASTO
-    contenido = BoxLayout(orientation="vertical", padding=16, spacing=10)
+    contenido = BoxLayout(orientation="vertical", padding=dp(16), spacing=dp(10))
     tarjeta_redondeada(contenido)
-    contenido.add_widget(hacer_label("Editar movimiento", tamanio=16,
+    contenido.add_widget(hacer_label("Editar movimiento", tamanio=L,
                                      bold=True, halign="center", color=COLOR_AZUL))
-    contenido.add_widget(hacer_label("Descripcion:", tamanio=12, color=COLOR_GRIS))
+    contenido.add_widget(hacer_label("Descripcion:", tamanio=S, color=COLOR_GRIS))
     campo_desc = hacer_input("Descripcion")
     campo_desc.input.text = desc
     contenido.add_widget(campo_desc)
-    contenido.add_widget(hacer_label("Categoria:", tamanio=12, color=COLOR_GRIS))
+    contenido.add_widget(hacer_label("Categoria:", tamanio=S, color=COLOR_GRIS))
     sp_cat = hacer_spinner(categorias, cat if cat in categorias else categorias[0])
     contenido.add_widget(sp_cat)
-    contenido.add_widget(hacer_label("Monto:", tamanio=12, color=COLOR_GRIS))
+    contenido.add_widget(hacer_label("Monto:", tamanio=S, color=COLOR_GRIS))
     campo_monto = hacer_input("Monto")
     campo_monto.input.text = str(monto)
     contenido.add_widget(campo_monto)
-    bots = BoxLayout(orientation="horizontal", size_hint_y=None, height=48, spacing=10)
-    btn_ok = hacer_boton("Guardar cambios", color_bg=COLOR_AZUL,  altura=48)
-    btn_no = hacer_boton("Cancelar",        color_bg=COLOR_BOTON, altura=48)
+    bots = BoxLayout(orientation="horizontal", size_hint_y=None, height=H_BTN, spacing=dp(10))
+    btn_ok = hacer_boton("Guardar cambios", color_bg=COLOR_AZUL,  altura=H_BTN)
+    btn_no = hacer_boton("Cancelar",        color_bg=COLOR_BOTON, altura=H_BTN)
     bots.add_widget(btn_ok); bots.add_widget(btn_no)
     contenido.add_widget(bots)
-    popup = Popup(title="Editar", content=contenido, size_hint=(0.92,0.80),
-                  background_color=COLOR_TARJETA, title_color=COLOR_AZUL, title_size=15)
+    popup = Popup(title="Editar", content=contenido, size_hint=(0.93,0.85),
+                  background_color=COLOR_TARJETA, title_color=COLOR_AZUL, title_size=M)
     def guardar(inst):
         nuevo_desc = campo_desc.input.text.strip()
         nueva_cat  = sp_cat.text
@@ -291,23 +310,23 @@ class PantallaMenu(Screen):
         self._construir()
 
     def _construir(self):
-        raiz = BoxLayout(orientation="vertical", padding=24, spacing=14)
+        raiz = BoxLayout(orientation="vertical", padding=PAD, spacing=dp(14))
         fondo(raiz)
-        raiz.add_widget(Label(size_hint_y=None, height=28))
-        raiz.add_widget(hacer_label("Gastos Familiares", tamanio=24, bold=True, halign="center"))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(28)))
+        raiz.add_widget(hacer_label("Gastos Familiares", tamanio=XL, bold=True, halign="center"))
         raiz.add_widget(hacer_label("Controla tus finanzas facilmente",
-                                    tamanio=13, color=COLOR_GRIS, halign="center"))
+                                    tamanio=S, color=COLOR_GRIS, halign="center"))
         saldo = saldo_global()
         color_saldo = COLOR_VERDE if saldo >= 0 else COLOR_ROJO
         signo = "+" if saldo >= 0 else ""
-        caja_saldo = BoxLayout(size_hint_y=None, height=62, padding=[0,6])
-        tarjeta_redondeada(caja_saldo, color=(0.10,0.22,0.16,1), radio=[14])
+        caja_saldo = BoxLayout(size_hint_y=None, height=H_CARD, padding=[0,dp(6)])
+        tarjeta_redondeada(caja_saldo, color=(0.10,0.22,0.16,1), radio=[dp(14)])
         caja_saldo.add_widget(Label(
             text=f"Saldo disponible:  {signo}${saldo:,.0f}",
-            font_size=18, bold=True, color=color_saldo,
+            font_size=L, bold=True, color=color_saldo,
             halign="center", valign="middle"))
         raiz.add_widget(caja_saldo)
-        raiz.add_widget(Label(size_hint_y=None, height=6))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(6)))
         raiz.add_widget(hacer_boton("+ Registrar Ingreso", color_bg=COLOR_VERDE,
                         on_press=lambda x: self.ir("ingreso")))
         raiz.add_widget(hacer_boton("- Registrar Gasto", color_bg=COLOR_ROJO,
@@ -328,22 +347,22 @@ class PantallaRegistro(Screen):
         self.tipo = tipo
         color_acento = COLOR_VERDE if tipo=="INGRESO" else COLOR_ROJO
         categorias   = CATEGORIAS_INGRESO if tipo=="INGRESO" else CATEGORIAS_GASTO
-        raiz = BoxLayout(orientation="vertical", padding=24, spacing=12)
+        raiz = BoxLayout(orientation="vertical", padding=PAD, spacing=dp(12))
         fondo(raiz)
-        raiz.add_widget(Label(size_hint_y=None, height=16))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(16)))
         raiz.add_widget(hacer_label(f"Registrar {tipo.capitalize()}",
-                                    tamanio=20, bold=True, color=color_acento, halign="center"))
-        raiz.add_widget(Label(size_hint_y=None, height=8))
-        raiz.add_widget(hacer_label("Descripcion", tamanio=12, color=COLOR_GRIS))
+                                    tamanio=L, bold=True, color=color_acento, halign="center"))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(8)))
+        raiz.add_widget(hacer_label("Descripcion", tamanio=S, color=COLOR_GRIS))
         self.campo_desc = hacer_input("Ej: Sueldo quincenal, Mercado...")
         raiz.add_widget(self.campo_desc)
-        raiz.add_widget(hacer_label("Categoria", tamanio=12, color=COLOR_GRIS))
+        raiz.add_widget(hacer_label("Categoria", tamanio=S, color=COLOR_GRIS))
         self.spinner_cat = hacer_spinner(categorias)
         raiz.add_widget(self.spinner_cat)
-        raiz.add_widget(hacer_label("Monto", tamanio=12, color=COLOR_GRIS))
+        raiz.add_widget(hacer_label("Monto", tamanio=S, color=COLOR_GRIS))
         self.campo_monto = hacer_input("Ej: 8000")
         raiz.add_widget(self.campo_monto)
-        raiz.add_widget(Label(size_hint_y=None, height=8))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(8)))
         raiz.add_widget(hacer_boton(f"Guardar {tipo.capitalize()}",
                         color_bg=color_acento, on_press=self.guardar))
         raiz.add_widget(hacer_boton("Volver", on_press=lambda x: self.volver()))
@@ -380,42 +399,44 @@ class PantallaResumen(Screen):
         saldo_acum  = round(saldo_ant + saldo_mes, 2)
         saldo_total = round(ing_total - gas_total, 2)
         es_filtrado = filtro_mes != "Todos"
-        raiz = BoxLayout(orientation="vertical", padding=18, spacing=8)
+        raiz = BoxLayout(orientation="vertical", padding=dp(16), spacing=dp(8))
         fondo(raiz)
-        raiz.add_widget(Label(size_hint_y=None, height=8))
-        raiz.add_widget(hacer_label("Resumen Financiero", tamanio=20, bold=True, halign="center"))
-        raiz.add_widget(hacer_label("Filtrar por mes:", tamanio=12, color=COLOR_GRIS))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(8)))
+        raiz.add_widget(hacer_label("Resumen Financiero", tamanio=L, bold=True, halign="center"))
+        raiz.add_widget(hacer_label("Filtrar por mes:", tamanio=S, color=COLOR_GRIS))
         spinner = hacer_spinner(MESES, filtro_mes)
         spinner.bind(text=lambda i,v: self.cambiar_mes(v))
         raiz.add_widget(spinner)
-        raiz.add_widget(Label(size_hint_y=None, height=4))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(4)))
         if es_filtrado:
-            bloque_ant = BoxLayout(orientation="horizontal", size_hint_y=None, height=44, padding=[12,6])
+            bloque_ant = BoxLayout(orientation="horizontal",
+                                   size_hint_y=None, height=dp(50), padding=[dp(12),dp(6)])
             tarjeta_redondeada(bloque_ant)
             c_ant = COLOR_VERDE if saldo_ant >= 0 else COLOR_ROJO
-            bloque_ant.add_widget(Label(text="Saldo arrastrado:", font_size=12, color=COLOR_GRIS,
+            bloque_ant.add_widget(Label(text="Saldo arrastrado:", font_size=S, color=COLOR_GRIS,
                                         halign="left", text_size=(None,None), size_hint_x=0.6))
-            bloque_ant.add_widget(Label(text=f"${saldo_ant:,.0f}", font_size=14,
+            bloque_ant.add_widget(Label(text=f"${saldo_ant:,.0f}", font_size=M,
                                         bold=True, color=c_ant, size_hint_x=0.4))
             raiz.add_widget(bloque_ant)
-            raiz.add_widget(hacer_label(f"Movimientos de {filtro_mes[3:]}:", tamanio=12, color=COLOR_GRIS))
-            grilla = GridLayout(cols=3, size_hint_y=None, height=72, spacing=6)
+            raiz.add_widget(hacer_label(f"Movimientos de {filtro_mes[3:]}:", tamanio=S, color=COLOR_GRIS))
+            grilla = GridLayout(cols=3, size_hint_y=None, height=H_CARD, spacing=dp(6))
             grilla.add_widget(tarjeta_box("Ingresos",  f"${ing_mes:,.0f}", COLOR_VERDE))
             grilla.add_widget(tarjeta_box("Gastos",    f"${gas_mes:,.0f}", COLOR_ROJO))
             c_mes = COLOR_VERDE if saldo_mes >= 0 else COLOR_ROJO
             grilla.add_widget(tarjeta_box("Saldo mes", f"${saldo_mes:,.0f}", c_mes))
             raiz.add_widget(grilla)
-            bloque_acum = BoxLayout(orientation="horizontal", size_hint_y=None, height=50, padding=[12,6])
+            bloque_acum = BoxLayout(orientation="horizontal",
+                                    size_hint_y=None, height=dp(56), padding=[dp(12),dp(6)])
             tarjeta_redondeada(bloque_acum, color=(0.10,0.10,0.16,1))
             c_acum = COLOR_VERDE if saldo_acum >= 0 else COLOR_ROJO
-            bloque_acum.add_widget(Label(text="Saldo acumulado hasta este mes:",
-                                         font_size=12, color=COLOR_TEXTO,
-                                         halign="left", text_size=(None,None), size_hint_x=0.6))
-            bloque_acum.add_widget(Label(text=f"${saldo_acum:,.0f}", font_size=17,
-                                         bold=True, color=c_acum, size_hint_x=0.4))
+            bloque_acum.add_widget(Label(text="Saldo acumulado:",
+                                         font_size=S, color=COLOR_TEXTO,
+                                         halign="left", text_size=(None,None), size_hint_x=0.55))
+            bloque_acum.add_widget(Label(text=f"${saldo_acum:,.0f}", font_size=L,
+                                         bold=True, color=c_acum, size_hint_x=0.45))
             raiz.add_widget(bloque_acum)
         else:
-            grilla = GridLayout(cols=3, size_hint_y=None, height=76, spacing=6)
+            grilla = GridLayout(cols=3, size_hint_y=None, height=H_CARD, spacing=dp(6))
             grilla.add_widget(tarjeta_box("Ingresos",    f"${ing_total:,.0f}", COLOR_VERDE))
             grilla.add_widget(tarjeta_box("Gastos",      f"${gas_total:,.0f}", COLOR_ROJO))
             c = COLOR_VERDE if saldo_total >= 0 else COLOR_ROJO
@@ -425,11 +446,11 @@ class PantallaResumen(Screen):
         if saldo_ref > 0:    estado, c_est = "Finanzas saludables",         COLOR_VERDE
         elif saldo_ref == 0: estado, c_est = "Justo a mano",                COLOR_AMARILLO
         else:                estado, c_est = "Gastos mayores que ingresos", COLOR_ROJO
-        raiz.add_widget(hacer_label(estado, tamanio=13, color=c_est, halign="center"))
-        raiz.add_widget(hacer_label(f"Movimientos: {len(movs)}", tamanio=12, color=COLOR_GRIS, halign="center"))
-        raiz.add_widget(hacer_label("Editar / Borrar con los botones:", tamanio=11, color=COLOR_GRIS))
+        raiz.add_widget(hacer_label(estado, tamanio=M, color=c_est, halign="center"))
+        raiz.add_widget(hacer_label(f"Movimientos: {len(movs)}", tamanio=S, color=COLOR_GRIS, halign="center"))
+        raiz.add_widget(hacer_label("Editar / Borrar con los botones:", tamanio=S, color=COLOR_GRIS))
         scroll = ScrollView(size_hint=(1,1))
-        lista  = BoxLayout(orientation="vertical", size_hint_y=None, spacing=6)
+        lista  = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(6))
         lista.bind(minimum_height=lista.setter("height"))
         for row in reversed(movs[-50:]):
             lista.add_widget(self._fila(row, filtro_mes))
@@ -438,7 +459,7 @@ class PantallaResumen(Screen):
         scroll.add_widget(lista)
         raiz.add_widget(scroll)
         raiz.add_widget(hacer_boton("Volver al menu",
-                        on_press=lambda x: setattr(self.manager,"current","menu"), altura=44))
+                        on_press=lambda x: setattr(self.manager,"current","menu"), altura=dp(50)))
         self.add_widget(raiz)
 
     def cambiar_mes(self, mes):
@@ -446,29 +467,33 @@ class PantallaResumen(Screen):
 
     def _fila(self, row, filtro_mes):
         idx, tipo, desc, cat, monto, fecha = row
-        fila = BoxLayout(orientation="horizontal", size_hint_y=None, height=58, spacing=5, padding=[8,5])
+        fila = BoxLayout(orientation="horizontal",
+                         size_hint_y=None, height=H_FILA, spacing=dp(5), padding=[dp(8),dp(5)])
         tarjeta_redondeada(fila)
         color_tipo = COLOR_VERDE if tipo=="INGRESO" else COLOR_ROJO
         simbolo    = "+" if tipo=="INGRESO" else "-"
         color_cat  = COLORES_CATEGORIA.get(cat, COLOR_GRIS)
-        col = BoxLayout(orientation="vertical", size_hint_x=0.48)
-        col.add_widget(Label(text=desc, font_size=12, color=COLOR_TEXTO, halign="left", text_size=(None,None)))
-        col.add_widget(Label(text=cat,  font_size=10, color=color_cat,   halign="left", text_size=(None,None)))
-        lbl_monto = Label(text=f"${monto:,.0f}", font_size=13, bold=True, color=color_tipo, size_hint_x=0.24)
-        btn_editar = Button(text="Edit", font_size=12, bold=True,
+        col = BoxLayout(orientation="vertical", size_hint_x=0.46)
+        col.add_widget(Label(text=desc, font_size=M, color=COLOR_TEXTO,
+                             halign="left", text_size=(None,None)))
+        col.add_widget(Label(text=cat,  font_size=S, color=color_cat,
+                             halign="left", text_size=(None,None)))
+        lbl_monto = Label(text=f"${monto:,.0f}", font_size=M,
+                          bold=True, color=color_tipo, size_hint_x=0.24)
+        btn_editar = Button(text="Edit", font_size=S, bold=True,
                             background_normal="", background_color=(0,0,0,0),
-                            color=COLOR_TEXTO, size_hint_x=0.15, size_hint_y=None, height=36)
+                            color=COLOR_TEXTO, size_hint_x=0.16, size_hint_y=None, height=dp(42))
         with btn_editar.canvas.before:
             Color(*COLOR_EDITAR)
-            btn_editar._rect = RoundedRectangle(pos=btn_editar.pos, size=btn_editar.size, radius=[8])
+            btn_editar._rect = RoundedRectangle(pos=btn_editar.pos, size=btn_editar.size, radius=[dp(8)])
         btn_editar.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
         btn_editar.bind(size=lambda i,v: setattr(i._rect,"size",v))
-        btn_borrar = Button(text="X", font_size=13, bold=True,
+        btn_borrar = Button(text="X", font_size=M, bold=True,
                             background_normal="", background_color=(0,0,0,0),
-                            color=COLOR_TEXTO, size_hint_x=0.13, size_hint_y=None, height=36)
+                            color=COLOR_TEXTO, size_hint_x=0.14, size_hint_y=None, height=dp(42))
         with btn_borrar.canvas.before:
             Color(*COLOR_BORRAR)
-            btn_borrar._rect = RoundedRectangle(pos=btn_borrar.pos, size=btn_borrar.size, radius=[8])
+            btn_borrar._rect = RoundedRectangle(pos=btn_borrar.pos, size=btn_borrar.size, radius=[dp(8)])
         btn_borrar.bind(pos=lambda i,v: setattr(i._rect,"pos",v))
         btn_borrar.bind(size=lambda i,v: setattr(i._rect,"size",v))
         def on_editar(inst, _row=row, _mes=filtro_mes):
@@ -477,7 +502,7 @@ class PantallaResumen(Screen):
             confirmar_borrado(_desc, _monto, lambda: self._ejecutar_borrado(_idx, _mes))
         btn_editar.bind(on_press=on_editar)
         btn_borrar.bind(on_press=on_borrar)
-        fila.add_widget(Label(text=simbolo, font_size=16, color=color_tipo, size_hint_x=0.07))
+        fila.add_widget(Label(text=simbolo, font_size=L, color=color_tipo, size_hint_x=0.08))
         fila.add_widget(col)
         fila.add_widget(lbl_monto)
         fila.add_widget(btn_editar)
@@ -497,26 +522,26 @@ class PantallaCategorias(Screen):
 
     def construir(self, filtro_mes="Todos"):
         totales, movimientos = cargar_categorias(filtro_mes)
-        raiz = BoxLayout(orientation="vertical", padding=20, spacing=8)
+        raiz = BoxLayout(orientation="vertical", padding=PAD, spacing=dp(8))
         fondo(raiz)
-        raiz.add_widget(Label(size_hint_y=None, height=10))
-        raiz.add_widget(hacer_label("Resumen por Categoria", tamanio=20, bold=True, halign="center"))
-        raiz.add_widget(hacer_label("Filtrar por mes:", tamanio=12, color=COLOR_GRIS))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(10)))
+        raiz.add_widget(hacer_label("Resumen por Categoria", tamanio=L, bold=True, halign="center"))
+        raiz.add_widget(hacer_label("Filtrar por mes:", tamanio=S, color=COLOR_GRIS))
         spinner = hacer_spinner(MESES, filtro_mes)
         spinner.bind(text=lambda i,v: self.cambiar_mes(v))
         raiz.add_widget(spinner)
-        raiz.add_widget(Label(size_hint_y=None, height=6))
+        raiz.add_widget(Label(size_hint_y=None, height=dp(6)))
         scroll = ScrollView(size_hint=(1,1))
-        lista  = BoxLayout(orientation="vertical", size_hint_y=None, spacing=6)
+        lista  = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(6))
         lista.bind(minimum_height=lista.setter("height"))
-        lista.add_widget(hacer_label("INGRESOS", tamanio=13, color=COLOR_VERDE, bold=True))
+        lista.add_widget(hacer_label("INGRESOS", tamanio=M, color=COLOR_VERDE, bold=True))
         hay = False
         for clave, total in sorted(totales.items()):
             if clave.startswith("INGRESO|"):
                 lista.add_widget(self._barra(clave.split("|")[1], total, COLOR_VERDE)); hay=True
         if not hay: lista.add_widget(hacer_label("Sin ingresos.", color=COLOR_GRIS))
-        lista.add_widget(Label(size_hint_y=None, height=10))
-        lista.add_widget(hacer_label("GASTOS", tamanio=13, color=COLOR_ROJO, bold=True))
+        lista.add_widget(Label(size_hint_y=None, height=dp(10)))
+        lista.add_widget(hacer_label("GASTOS", tamanio=M, color=COLOR_ROJO, bold=True))
         hay = False
         for clave, total in sorted(totales.items()):
             if clave.startswith("GASTO|"):
@@ -527,19 +552,20 @@ class PantallaCategorias(Screen):
         scroll.add_widget(lista)
         raiz.add_widget(scroll)
         raiz.add_widget(hacer_boton("Volver al menu",
-                        on_press=lambda x: setattr(self.manager,"current","menu"), altura=44))
+                        on_press=lambda x: setattr(self.manager,"current","menu"), altura=dp(50)))
         self.add_widget(raiz)
 
     def cambiar_mes(self, mes):
         self.clear_widgets(); self.construir(mes)
 
     def _barra(self, categoria, total, color):
-        fila = BoxLayout(orientation="horizontal", size_hint_y=None, height=44, spacing=8, padding=[12,4])
+        fila = BoxLayout(orientation="horizontal",
+                         size_hint_y=None, height=dp(52), spacing=dp(8), padding=[dp(12),dp(4)])
         tarjeta_redondeada(fila)
         color_cat = COLORES_CATEGORIA.get(categoria, COLOR_GRIS)
-        fila.add_widget(Label(text=categoria, font_size=13, color=color_cat,
+        fila.add_widget(Label(text=categoria, font_size=M, color=color_cat,
                                halign="left", text_size=(None,None), size_hint_x=0.55))
-        fila.add_widget(Label(text=f"${total:,.0f}", font_size=14,
+        fila.add_widget(Label(text=f"${total:,.0f}", font_size=M,
                                bold=True, color=color, size_hint_x=0.45))
         return fila
 
